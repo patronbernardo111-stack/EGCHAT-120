@@ -7,7 +7,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.jallzstores.egchat",
-      "buildNumber": "136",
+      "buildNumber": "137",
       "supportsTablet": false,
       "appleTeamId": "XU6YD7ZJ2K",
       "deploymentTarget": "15.0",
@@ -68,12 +68,12 @@
         "origin": false
       },
       "eas": {
-        "projectId": "e34a8c35-0c47-4c88-8c6b-e7dda1d3956b"
+        "projectId": "6200ec00-54d7-4ef4-a348-56e80a1452f6"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "owner": "dutti98"
+    "owner": "reddington120"
   }
 }
