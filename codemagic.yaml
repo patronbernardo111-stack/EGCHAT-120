@@ -9,8 +9,6 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.jallzstores.egchat
-        certificate: EGCHAT Distribution
-        provisioning_profile: EGCHAT AppStore Profile
       vars:
         XCODE_WORKSPACE: "egchat-mobile/ios/egchat.xcworkspace"
         XCODE_SCHEME: "egchat"
