@@ -1,6 +1,6 @@
 workflows:
   react-native-ios:
-    name: React Native iOS
+    name: EGCHAT iOS Production
     max_build_duration: 120
     instance_type: mac_mini_m2
     integrations:
@@ -10,36 +10,36 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.jallzstores.egchat
       vars:
-        XCODE_WORKSPACE: "ios/egchat.xcworkspace"
+        XCODE_WORKSPACE: "egchat-mobile/ios/egchat.xcworkspace"
         XCODE_SCHEME: "egchat"
-        APP_STORE_APPLE_ID: 6810877584
+        APP_STORE_APPLE_ID: "6810877584"
+        BUNDLE_ID: "com.jallzstores.egchat"
       node: v18.20.0
-      xcode: 16.0
+      xcode: latest
       cocoapods: default
     scripts:
       - name: Install npm dependencies
         script: |
-          npm ci
+          cd egchat-mobile && npm ci
       - name: Install CocoaPods dependencies
         script: |
-          cd ios && pod install
+          cd egchat-mobile/ios && pod install
       - name: Set up provisioning profiles settings on Xcode project
-        script: xcode-project use-profiles
+        script: |
+          cd egchat-mobile && xcode-project use-profiles
       - name: Increment build number
         script: |
-          cd ios
+          cd egchat-mobile/ios
           LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID")
           agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
       - name: Build ipa for distribution
         script: |
-          xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
-            --scheme "$XCODE_SCHEME"
+          cd egchat-mobile && xcode-project build-ipa \
+            --workspace "ios/egchat.xcworkspace" \
+            --scheme "egchat"
     artifacts:
-      - build/ios/ipa/*.ipa
+      - egchat-mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
     publishing:
       email:
         recipients:
@@ -50,6 +50,4 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        beta_groups:
-          - App Store Connect Users
         submit_to_app_store: false
