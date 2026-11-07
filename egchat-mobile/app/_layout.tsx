@@ -1,5 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
-import React from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -15,31 +14,28 @@ export default function RootLayout() {
 
   // Check authentication status
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const auth = await Promise.race([
-          authAPI.isAuthenticated(),
-          new Promise<boolean>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
-        ]);
-        if (auth) {
-          router.replace('/(tabs)');
-          const pushToken = await registerForPushNotifications();
-          notifCleanup.current = setupNotificationListeners(
-            (chatId) => router.push(`/(tabs)` as any),
-            (callData) => router.push(`/(tabs)` as any)
-          );
-          clearBadge();
+    authAPI.isAuthenticated().then(async (auth) => {
+      if (auth) {
+        router.replace('/(tabs)');
+        // Registrar notificaciones push solo si está autenticado
+        const pushToken = await registerForPushNotifications();
+        if (!pushToken) {
+          console.warn('⚠️ Push token no obtenido — notificaciones en background desactivadas');
         } else {
-          router.replace('/(auth)/login');
+          console.log('✅ Push token registrado:', pushToken.substring(0, 30) + '...');
         }
-      } catch (error) {
-        console.error('Auth check failed:', error);
+        // Escuchar notificaciones
+        notifCleanup.current = setupNotificationListeners(
+          (chatId) => router.push(`/(tabs)` as any),
+          (callData) => router.push(`/(tabs)` as any)
+        );
+        clearBadge();
+      } else {
         router.replace('/(auth)/login');
-      } finally {
-        setChecking(false);
       }
-    };
-    checkAuth();
+      setChecking(false);
+    });
+
     return () => { notifCleanup.current?.(); };
   }, []);
 
