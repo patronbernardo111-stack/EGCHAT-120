@@ -10,8 +10,8 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.jallzstores.egchat
       vars:
-        XCODE_WORKSPACE: "egchat-mobile/ios/egchat.xcworkspace"
-        XCODE_SCHEME: "egchat"
+        XCODE_WORKSPACE: "egchat-mobile/ios/EGCHAT.xcworkspace"
+        XCODE_SCHEME: "EGCHAT"
         APP_STORE_APPLE_ID: "6810877584"
         BUNDLE_ID: "com.jallzstores.egchat"
       node: v18.20.0
@@ -35,8 +35,8 @@ workflows:
       - name: Build ipa for distribution
         script: |
           cd egchat-mobile && xcode-project build-ipa \
-            --workspace "ios/egchat.xcworkspace" \
-            --scheme "egchat"
+            --workspace "ios/EGCHAT.xcworkspace" \
+            --scheme "EGCHAT"
     artifacts:
       - egchat-mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
