@@ -33,10 +33,24 @@ workflows:
           agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
       - name: Build ipa for distribution
         script: |
-          cd egchat-mobile && xcode-project build-ipa \
-            --workspace "ios/EGCHAT.xcworkspace" \
-            --scheme "EGCHAT" \
-            --verbose
+          cd egchat-mobile && xcodebuild \
+            -workspace "ios/EGCHAT.xcworkspace" \
+            -scheme "EGCHAT" \
+            -archivePath "$CM_BUILD_DIR/EGCHAT.xcarchive" \
+            -configuration Release \
+            -sdk iphoneos \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            DEVELOPMENT_TEAM=XU6YD7ZJ2K \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE_SPECIFIER="EGCHAT Codemagic AppStore" \
+            archive 2>&1 | tee /tmp/xcodebuild.log | xcpretty --no-color
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "=== XCODEBUILD ERRORS ==="
+            grep -E "error:|Error|FAILED" /tmp/xcodebuild.log | head -50
+            exit $EXIT_CODE
+          fi
     artifacts:
       - egchat-mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
