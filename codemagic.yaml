@@ -35,7 +35,8 @@ workflows:
         script: |
           cd egchat-mobile && xcode-project build-ipa \
             --workspace "ios/EGCHAT.xcworkspace" \
-            --scheme "EGCHAT"
+            --scheme "EGCHAT" \
+            --verbose
     artifacts:
       - egchat-mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
