@@ -24,7 +24,6 @@ workflows:
       - name: Generate iOS project with Expo prebuild
         script: |
           cd egchat-mobile && npx expo prebuild --platform ios --clean
-          # Replace Podfile with our custom version that patches fmt
           cp Podfile.custom ios/Podfile
       - name: Install CocoaPods dependencies
         script: |
@@ -32,26 +31,16 @@ workflows:
       - name: Patch fmt for Xcode 26
         script: |
           FMT_DIR="egchat-mobile/ios/Pods/fmt/include/fmt"
-          # Patch base.h
           if [ -f "$FMT_DIR/base.h" ]; then
             sed -i '' 's/#elif defined(__cpp_consteval)/#elif 0 \/\/ disabled/g' "$FMT_DIR/base.h"
             sed -i '' 's/#  define FMT_USE_CONSTEVAL 1/#  define FMT_USE_CONSTEVAL 0/g' "$FMT_DIR/base.h"
             echo "✅ base.h patched"
           fi
-          # Patch format-inl.h - replace FMT_COMPILE_STRING with regular strings
           if [ -f "$FMT_DIR/format-inl.h" ]; then
             sed -i '' 's/FMT_STRING(/(/g' "$FMT_DIR/format-inl.h"
-            sed -i '' 's/FMT_COMPILE_STRING/FMT_STRING/g' "$FMT_DIR/format-inl.h"
             echo "✅ format-inl.h patched"
           fi
-          # Also patch core.h if exists
-          for f in "$FMT_DIR/core.h" "$FMT_DIR/format.h"; do
-            if [ -f "$f" ]; then
-              sed -i '' 's/#elif defined(__cpp_consteval)/#elif 0 \/\/ disabled/g' "$f"
-              sed -i '' 's/#  define FMT_USE_CONSTEVAL 1/#  define FMT_USE_CONSTEVAL 0/g' "$f"
-              echo "✅ $f patched"
-            fi
-          done      - name: Set up provisioning profiles settings on Xcode project
+      - name: Set up provisioning profiles settings on Xcode project
         script: |
           cd egchat-mobile && xcode-project use-profiles
       - name: Increment build number
@@ -61,24 +50,9 @@ workflows:
           agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
       - name: Build ipa for distribution
         script: |
-          cd egchat-mobile && xcodebuild \
-            -workspace "ios/EGCHAT.xcworkspace" \
-            -scheme "EGCHAT" \
-            -archivePath "$CM_BUILD_DIR/EGCHAT.xcarchive" \
-            -configuration Release \
-            -sdk iphoneos \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            DEVELOPMENT_TEAM=XU6YD7ZJ2K \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            CODE_SIGN_STYLE=Manual \
-            PROVISIONING_PROFILE_SPECIFIER="EGCHAT Codemagic AppStore" \
-            archive 2>&1 | tee /tmp/xcodebuild.log | xcpretty --no-color
-          EXIT_CODE=${PIPESTATUS[0]}
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "=== XCODEBUILD ERRORS ==="
-            grep -E "error:|Error|FAILED" /tmp/xcodebuild.log | head -50
-            exit $EXIT_CODE
-          fi
+          cd egchat-mobile && xcode-project build-ipa \
+            --workspace "ios/EGCHAT.xcworkspace" \
+            --scheme "EGCHAT"
     artifacts:
       - egchat-mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
