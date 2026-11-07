@@ -24,6 +24,8 @@ workflows:
       - name: Generate iOS project with Expo prebuild
         script: |
           cd egchat-mobile && npx expo prebuild --platform ios --clean
+          # Replace Podfile with our custom version that patches fmt
+          cp egchat-mobile/Podfile.custom egchat-mobile/ios/Podfile
       - name: Install CocoaPods dependencies
         script: |
           cd egchat-mobile/ios && pod install --repo-update
