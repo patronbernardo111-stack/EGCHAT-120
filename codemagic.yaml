@@ -59,7 +59,13 @@ workflows:
         script: |
           cd egchat-mobile && xcode-project build-ipa \
             --workspace "ios/EGCHAT.xcworkspace" \
-            --scheme "EGCHAT"
+            --scheme "EGCHAT" 2>&1 | tee /tmp/build_output.log
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "=== BUILD ERRORS ==="
+            grep -E "error:|❌" /tmp/build_output.log | grep -v "warning" | head -30
+            exit $EXIT_CODE
+          fi
     artifacts:
       - egchat-mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
