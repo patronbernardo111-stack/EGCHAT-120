@@ -24,7 +24,15 @@ workflows:
       - name: Install CocoaPods dependencies
         script: |
           cd egchat-mobile/ios && pod install --repo-update
-      - name: Set up provisioning profiles settings on Xcode project
+      - name: Fix fmt library for Xcode 16
+        script: |
+          FMT_FORMAT="egchat-mobile/ios/Pods/fmt/include/fmt/core.h"
+          if [ -f "$FMT_FORMAT" ]; then
+            sed -i '' 's/FMT_CONSTEVAL/constexpr/g' "$FMT_FORMAT"
+            echo "✅ fmt patched"
+          else
+            echo "⚠️ fmt core.h not found, skipping patch"
+          fi      - name: Set up provisioning profiles settings on Xcode project
         script: |
           cd egchat-mobile && xcode-project use-profiles
       - name: Increment build number
