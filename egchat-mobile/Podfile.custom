@@ -60,6 +60,7 @@ target 'EGCHAT' do
   # Patch fmt base.h to disable consteval for Xcode 16 compatibility
   fmt_base_h = File.join(__dir__, 'Pods/fmt/include/fmt/base.h')
   if File.exist?(fmt_base_h)
+    FileUtils.chmod(0644, fmt_base_h)
     content = File.read(fmt_base_h)
     content = content.gsub('#elif defined(__cpp_consteval)', '#elif 0 // disabled for Xcode 16')
     content = content.gsub('#  define FMT_USE_CONSTEVAL 1', '#  define FMT_USE_CONSTEVAL 0')
@@ -70,6 +71,7 @@ target 'EGCHAT' do
   # Patch fmt format-inl.h to fix FMT_STRING consteval errors
   fmt_format_inl = File.join(__dir__, 'Pods/fmt/include/fmt/format-inl.h')
   if File.exist?(fmt_format_inl)
+    FileUtils.chmod(0644, fmt_format_inl)
     content = File.read(fmt_format_inl)
     content = content.gsub('FMT_STRING("{}{}"), message, SEP', '"{}{}"), message, SEP')
     content = content.gsub('FMT_STRING("{}{}"), ERROR_STR, error_code', '"{}{}"), ERROR_STR, error_code')
