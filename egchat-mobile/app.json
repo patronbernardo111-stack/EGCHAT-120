@@ -68,8 +68,7 @@
           ]
         }
       ],
-      "expo-secure-store",
-      "./plugins/withIOSDeploymentTarget.js"
+      "expo-secure-store"
     ],
     "scheme": "egchat",
     "extra": {
