@@ -23,10 +23,7 @@ workflows:
           cd egchat-mobile && npm ci
       - name: Generate iOS project with Expo prebuild
         script: |
-          cd egchat-mobile && npx expo prebuild --platform ios --clean --no-install
-      - name: Install CocoaPods dependencies
-        script: |
-          cd egchat-mobile/ios && pod install --repo-update      - name: Set up provisioning profiles settings on Xcode project
+          cd egchat-mobile && npx expo prebuild --platform ios --clean      - name: Set up provisioning profiles settings on Xcode project
         script: |
           cd egchat-mobile && xcode-project use-profiles
       - name: Increment build number
