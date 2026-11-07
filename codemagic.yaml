@@ -26,28 +26,16 @@ workflows:
           cd egchat-mobile/ios && pod install --repo-update
       - name: Fix fmt library for Xcode 16
         script: |
-          FMT_FORMAT="egchat-mobile/ios/Pods/fmt/include/fmt/core.h"
-          FMT_FORMAT2="egchat-mobile/ios/Pods/fmt/include/fmt/format.h"
-          if [ -f "$FMT_FORMAT" ]; then
-            # Replace FMT_CONSTEVAL with constexpr to fix Xcode 16 compilation
-            sed -i '' 's/FMT_CONSTEVAL/constexpr/g' "$FMT_FORMAT"
-            echo "✅ fmt core.h patched"
-          fi
-          if [ -f "$FMT_FORMAT2" ]; then
-            sed -i '' 's/FMT_CONSTEVAL/constexpr/g' "$FMT_FORMAT2"
-            echo "✅ fmt format.h patched"
-          fi
-          # Also patch the source file
-          FMT_SRC="egchat-mobile/ios/Pods/fmt/src/format.cc"
-          if [ -f "$FMT_SRC" ]; then
-            sed -i '' 's/FMT_CONSTEVAL/constexpr/g' "$FMT_SRC"
-            echo "✅ fmt format.cc patched"
-          fi
-          # List all fmt headers
-          find egchat-mobile/ios/Pods/fmt -name "*.h" -o -name "*.cc" 2>/dev/null | while read f; do
-            sed -i '' 's/FMT_CONSTEVAL/constexpr/g' "$f"
-          done
-          echo "✅ All fmt files patched"      - name: Set up provisioning profiles settings on Xcode project
+          BASE_H="egchat-mobile/ios/Pods/fmt/include/fmt/base.h"
+          if [ -f "$BASE_H" ]; then
+            # Force FMT_USE_CONSTEVAL to 0 to fix Xcode 16 compilation
+            sed -i '' 's/#elif defined(__cpp_consteval)/#elif 0 \/\/ defined(__cpp_consteval)/g' "$BASE_H"
+            sed -i '' 's/#  define FMT_USE_CONSTEVAL 1/#  define FMT_USE_CONSTEVAL 0/g' "$BASE_H"
+            echo "✅ fmt base.h patched - disabled consteval"
+          else
+            echo "❌ fmt base.h not found!"
+            find egchat-mobile/ios/Pods/fmt -name "*.h" | head -10
+          fi      - name: Set up provisioning profiles settings on Xcode project
         script: |
           cd egchat-mobile && xcode-project use-profiles
       - name: Increment build number
