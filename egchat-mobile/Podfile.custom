@@ -73,10 +73,8 @@ target 'EGCHAT' do
   if File.exist?(fmt_format_inl)
     FileUtils.chmod(0644, fmt_format_inl)
     content = File.read(fmt_format_inl)
-    content = content.gsub('FMT_STRING("{}{}"), message, SEP', '"{}{}"), message, SEP')
-    content = content.gsub('FMT_STRING("{}{}"), ERROR_STR, error_code', '"{}{}"), ERROR_STR, error_code')
-    content = content.gsub(/fmt::format_to\(([^,]+),\s*FMT_STRING\(([^)]+)\)/, 'fmt::format_to(\1, \2')
-    content = content.gsub('FMT_STRING(', '(')
+    # Replace FMT_STRING("...") with just "..." (remove macro wrapper)
+    content = content.gsub(/FMT_STRING\(("(?:[^"\\]|\\.)*")\)/) { $1 }
     File.write(fmt_format_inl, content)
     puts "✅ fmt format-inl.h patched for Xcode 16"
   end
