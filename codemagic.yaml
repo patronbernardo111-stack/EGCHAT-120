@@ -21,6 +21,9 @@ workflows:
       - name: Install npm dependencies
         script: |
           cd egchat-mobile && npm ci
+      - name: Generate iOS project with Expo prebuild
+        script: |
+          cd egchat-mobile && npx expo prebuild --platform ios --clean --no-install
       - name: Install CocoaPods dependencies
         script: |
           cd egchat-mobile/ios && pod install --repo-update      - name: Set up provisioning profiles settings on Xcode project
