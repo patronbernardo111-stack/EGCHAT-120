@@ -47,6 +47,11 @@ workflows:
         script: |
           cd egchat-mobile/ios
           LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID")
+          echo "Latest build number from App Store: $LATEST_BUILD_NUMBER"
+          # Ensure build number is at least 134 (continuation of existing builds)
+          if [ "$LATEST_BUILD_NUMBER" -lt 133 ]; then
+            LATEST_BUILD_NUMBER=133
+          fi
           agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
       - name: Build ipa for distribution
         script: |
