@@ -23,7 +23,7 @@ workflows:
           cd egchat-mobile && npm ci
       - name: Install CocoaPods dependencies
         script: |
-          cd egchat-mobile/ios && pod install
+          cd egchat-mobile/ios && pod install --repo-update
       - name: Set up provisioning profiles settings on Xcode project
         script: |
           cd egchat-mobile && xcode-project use-profiles
