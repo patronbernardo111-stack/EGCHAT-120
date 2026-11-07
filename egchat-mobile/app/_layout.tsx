@@ -15,28 +15,31 @@ export default function RootLayout() {
 
   // Check authentication status
   useEffect(() => {
-    authAPI.isAuthenticated().then(async (auth) => {
-      if (auth) {
-        router.replace('/(tabs)');
-        // Registrar notificaciones push solo si está autenticado
-        const pushToken = await registerForPushNotifications();
-        if (!pushToken) {
-          console.warn('⚠️ Push token no obtenido — notificaciones en background desactivadas');
+    const checkAuth = async () => {
+      try {
+        const auth = await Promise.race([
+          authAPI.isAuthenticated(),
+          new Promise<boolean>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+        ]);
+        if (auth) {
+          router.replace('/(tabs)');
+          const pushToken = await registerForPushNotifications();
+          notifCleanup.current = setupNotificationListeners(
+            (chatId) => router.push(`/(tabs)` as any),
+            (callData) => router.push(`/(tabs)` as any)
+          );
+          clearBadge();
         } else {
-          console.log('✅ Push token registrado:', pushToken.substring(0, 30) + '...');
+          router.replace('/(auth)/login');
         }
-        // Escuchar notificaciones
-        notifCleanup.current = setupNotificationListeners(
-          (chatId) => router.push(`/(tabs)` as any),
-          (callData) => router.push(`/(tabs)` as any)
-        );
-        clearBadge();
-      } else {
+      } catch (error) {
+        console.error('Auth check failed:', error);
         router.replace('/(auth)/login');
+      } finally {
+        setChecking(false);
       }
-      setChecking(false);
-    });
-
+    };
+    checkAuth();
     return () => { notifCleanup.current?.(); };
   }, []);
 
