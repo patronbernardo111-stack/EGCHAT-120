@@ -23,15 +23,7 @@ workflows:
           cd egchat-mobile && npm ci
       - name: Install CocoaPods dependencies
         script: |
-          cd egchat-mobile/ios && pod install --repo-update
-      - name: Fix fmt library for Xcode 16
-        script: |
-          BASE_H="egchat-mobile/ios/Pods/fmt/include/fmt/base.h"
-          if [ -f "$BASE_H" ]; then
-            sed -i '' 's/#elif defined(__cpp_consteval)/#elif 0 \/\/ disabled for Xcode 16/g' "$BASE_H"
-            sed -i '' 's/#  define FMT_USE_CONSTEVAL 1/#  define FMT_USE_CONSTEVAL 0/g' "$BASE_H"
-            echo "✅ fmt base.h patched"
-          fi      - name: Set up provisioning profiles settings on Xcode project
+          cd egchat-mobile/ios && pod install --repo-update      - name: Set up provisioning profiles settings on Xcode project
         script: |
           cd egchat-mobile && xcode-project use-profiles
       - name: Increment build number
