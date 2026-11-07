@@ -57,15 +57,41 @@ workflows:
           agvtool new-version -all $NEW_BUILD
       - name: Build ipa for distribution
         script: |
-          cd egchat-mobile && xcode-project build-ipa \
-            --workspace "ios/EGCHAT.xcworkspace" \
-            --scheme "EGCHAT" 2>&1 | tee /tmp/build_output.log
+          cd egchat-mobile && xcodebuild \
+            -workspace "ios/EGCHAT.xcworkspace" \
+            -scheme "EGCHAT" \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath "$CM_BUILD_DIR/EGCHAT.xcarchive" \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            archive 2>&1 | tee /tmp/xcode_full.log
           EXIT_CODE=${PIPESTATUS[0]}
           if [ $EXIT_CODE -ne 0 ]; then
-            echo "=== BUILD ERRORS ==="
-            grep -E "error:|❌" /tmp/build_output.log | grep -v "warning" | head -30
+            echo "=== BUNDLE ERRORS ==="
+            grep -A5 "Bundle React Native" /tmp/xcode_full.log | grep -v "^--$" | head -30
+            echo "=== ALL ERRORS ==="
+            grep -E "^.*error:" /tmp/xcode_full.log | head -20
             exit $EXIT_CODE
           fi
+          # Export IPA
+          cat > /tmp/exportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>teamID</key>
+            <string>XU6YD7ZJ2K</string>
+          </dict>
+          </plist>
+          EOF
+          mkdir -p build/ios/ipa
+          xcodebuild -exportArchive \
+            -archivePath "$CM_BUILD_DIR/EGCHAT.xcarchive" \
+            -exportOptionsPlist /tmp/exportOptions.plist \
+            -exportPath "$CM_BUILD_DIR/ipa"
+          cp "$CM_BUILD_DIR/ipa/EGCHAT.ipa" build/ios/ipa/EGCHAT.ipa
     artifacts:
       - egchat-mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
